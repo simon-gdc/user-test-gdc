@@ -152,8 +152,6 @@ html {
 .sel-subtitle { padding: 0 24px 8px; font-size: 14px; font-weight: 500; line-height: 20px; color: var(--color-primary-grey); flex-shrink: 0; }
 
 /* ── Home indicator ── */
-.home-ind { height: 34px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.home-ind::after { content: ''; width: 134px; height: 5px; background: var(--color-black); border-radius: 100px; opacity: .18; }
 
 /* ── Action sheet long press liste ── */
 .as-overlay {
@@ -223,8 +221,6 @@ html {
 .modal-title { font-size: 22px; font-weight: 700; line-height: 28px; color: var(--color-black); }
 .modal-body  { font-size: 16px; font-weight: 500; line-height: 24px; color: var(--color-black); }
 .modal-btns  { padding: 24px; display: flex; gap: 16px; align-items: center; }
-.modal-home  { height: 34px; display: flex; align-items: center; justify-content: center; }
-.modal-home::after { content:''; width:134px; height:4px; background:var(--color-black); border-radius:100px; }
 .m-cancel {
   flex-shrink: 0;
   height: 48px; padding: 0 20px;
@@ -460,11 +456,9 @@ html {
           Supprimer la conversation
         </button>
       </div>
-      <div class="home-ind"></div>
     </div>
   </div>
 
-  <div class="home-ind"></div>
 </div>
 
 
@@ -571,7 +565,6 @@ html {
         <button class="send-btn"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M13 2L2 7L6.5 9M13 2L8.5 13L6.5 9M13 2L6.5 9" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
     </div>
-    <div class="home-ind"></div>
   </div>
 
   <!-- Toast favori -->
@@ -596,7 +589,6 @@ html {
       <button class="m-cancel" onclick="hideModal()">Annuler</button>
       <button class="m-confirm" onclick="confirmDel()">Supprimer</button>
     </div>
-    <div class="modal-home"></div>
   </div>
 </div>
 
