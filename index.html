@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gens de Confiance · Messagerie — Avant-première</title>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-black:        #061f18;
+  --color-white:        #ffffff;
+  --color-main:         #497e64;
+  --color-main-dark:    #2b413b;
+  --color-messaging:    #2b413b;
+  --color-main-disabled:#80ae98;
+  --color-error:        #b53835;
+  --color-light-grey:   #f2f2f2;
+  --color-off-grey:     #fafafa;
+  --color-strong-grey:  #bbbec4;
+  --color-primary-grey: #727373;
+  --color-bg-main:      #f0fdf0;
+  --color-tonic:        #1493ef;
+  --radius-s: 4px; --radius-m: 8px; --radius-l: 16px; --radius-xl: 24px;
+  --font: 'Satoshi', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background: #ddd6ce;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+
+
+/* ── Phone ── */
+.phone { width: 375px; height: 812px; background: white; position: relative; overflow: hidden; border-radius: 44px; box-shadow: 0 20px 60px rgba(6,31,24,.22); }
+
+/* ── Screens ── */
+.screen {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  background: white; opacity: 0; pointer-events: none;
+  transform: translateX(28px);
+  transition: opacity .26s cubic-bezier(.4,0,.2,1), transform .26s cubic-bezier(.4,0,.2,1);
+  will-change: opacity, transform;
+}
+.screen.active { opacity: 1; pointer-events: all; transform: translateX(0); }
+
+/* ── Status bar ── */
+.status-bar { height: 44px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.s-time { font-size: 16px; font-weight: 700; color: var(--color-black); }
+.s-icons { display: flex; align-items: center; gap: 6px; }
+
+/* ── Nav bar ── */
+.nav-bar { height: 48px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.back-icon { background: none; border: none; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: background .12s; }
+.back-icon:active { background: var(--color-light-grey); }
+.pill-btn { background: var(--color-light-grey); border: none; border-radius: var(--radius-xl); height: 32px; padding: 0 16px; font-family: var(--font); font-size: 14px; font-weight: 700; color: var(--color-black); cursor: pointer; transition: background .12s; }
+.pill-btn:active { background: var(--color-strong-grey); }
+.pill-btn.link { background: none; color: var(--color-tonic); padding: 0; }
+
+/* ── Page title / tabs ── */
+.page-title { padding: 0 24px 8px; font-size: 22px; font-weight: 700; line-height: 28px; color: var(--color-black); flex-shrink: 0; }
+.tabs { padding: 0 24px 8px; display: flex; gap: 8px; flex-shrink: 0; }
+.tab { height: 40px; padding: 0 20px; border-radius: var(--radius-xl); font-family: var(--font); font-size: 14px; font-weight: 700; cursor: pointer; transition: all .18s; }
+.tab.on  { background: var(--color-bg-main); border: 2px solid var(--color-main); color: var(--color-black); }
+.tab.off { background: white; border: 1.5px solid var(--color-strong-grey); color: var(--color-black); }
+
+/* ── Conv list ── */
+.conv-list { flex: 1; overflow-y: auto; padding: 4px 0; display: flex; flex-direction: column; gap: 2px; }
+.conv-list::-webkit-scrollbar { display: none; }
+
+/* ── Conv item ── */
+.ci { padding: 4px 8px; flex-shrink: 0; cursor: pointer; }
+.ci-inner { background: white; border-radius: var(--radius-l); padding: 14px; display: flex; align-items: center; gap: 14px; min-height: 96px; transition: background .15s; }
+.ci-inner:active { background: var(--color-off-grey); }
+.ci.unread .ci-inner { background: var(--color-off-grey); }
+
+/* avatars */
+.dav { position: relative; width: 72px; height: 72px; flex-shrink: 0; }
+.dav-thumb { width: 48px; height: 48px; border-radius: var(--radius-s); object-fit: cover; position: absolute; top: 0; left: 0; background: var(--color-light-grey); }
+.dav-av    { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; position: absolute; bottom: 0; right: 0; border: 4px solid white; background: var(--color-light-grey); }
+.ci.unread .dav-av { border-color: var(--color-off-grey); }
+.av-solo   { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--color-light-grey); flex-shrink: 0; }
+
+/* text */
+.ci-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.ci-row1 { display: flex; align-items: center; gap: 4px; }
+.ci-name { font-size: 16px; font-weight: 500; line-height: 24px; color: var(--color-black); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+.ci.unread .ci-name { font-weight: 700; }
+.ci-date { font-size: 14px; font-weight: 500; color: var(--color-primary-grey); flex-shrink: 0; }
+.ci.unread .ci-date { font-weight: 700; color: var(--color-black); }
+.ci-subject { font-size: 14px; font-weight: 500; line-height: 20px; color: var(--color-primary-grey); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ci.unread .ci-subject { font-weight: 700; color: var(--color-black); }
+.ci-row3 { display: flex; align-items: center; gap: 4px; }
+.ci-preview { font-size: 14px; font-weight: 500; line-height: 20px; color: var(--color-primary-grey); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.ci.unread .ci-preview { color: var(--color-black); }
+.badge { background: var(--color-error); color: white; font-size: 11px; font-weight: 700; line-height: 1; border-radius: 100px; min-width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; padding: 0 5px; flex-shrink: 0; }
+.clip { width: 14px; height: 14px; flex-shrink: 0; opacity: .5; }
+
+/* ── Selection ── */
+/* ── Checkbox carré arrondi ── */
+.sel-chk { width: 22px; height: 22px; border-radius: 6px; border: 2px solid var(--color-strong-grey); background: white; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.sel-chk.on { background: var(--color-main); border-color: var(--color-main); }
+.sel-chk.on::after { content: ''; width: 5px; height: 9px; border: 2.5px solid white; border-top: none; border-left: none; transform: rotate(45deg) translateY(-1px); margin-top: 1px; }
+/* ── Bottom actions : Annuler + Supprimer côte à côte ── */
+/* ── Bottom bar sélection — Figma 4201-22324 ── */
+.sel-actions {
+  border-top: 1px solid var(--color-light-grey);
+  box-shadow: 0 -2px 16px rgba(6,31,24,.06);
+  padding: 24px;
+  flex-shrink: 0;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background: white;
+}
+.cancel-btn {
+  flex-shrink: 0;
+  height: 48px;
+  padding: 0 20px;
+  border-radius: var(--radius-m);
+  border: none;
+  background: var(--color-light-grey);
+  font-family: var(--font); font-size: 16px; font-weight: 700;
+  color: var(--color-black); cursor: pointer;
+  transition: opacity .12s;
+}
+.cancel-btn:active { opacity: .75; }
+.del-btn {
+  flex: 1;
+  height: 48px;
+  border-radius: var(--radius-m);
+  background: var(--color-error);
+  color: white;
+  font-family: var(--font); font-size: 16px; font-weight: 700;
+  border: none; cursor: pointer;
+  opacity: .4;
+  transition: opacity .2s;
+}
+.del-btn.on { opacity: 1; }
+/* ── Sous-titre compteur ── */
+.sel-subtitle { padding: 0 24px 8px; font-size: 14px; font-weight: 500; line-height: 20px; color: var(--color-primary-grey); flex-shrink: 0; }
+
+/* ── Home indicator ── */
+.home-ind { height: 34px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.home-ind::after { content: ''; width: 134px; height: 5px; background: var(--color-black); border-radius: 100px; opacity: .18; }
+
+/* ── Action sheet long press liste ── */
+.as-overlay {
+  position: absolute; inset: 0; z-index: 150;
+  background: rgba(6,31,24,.6);
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  gap: 12px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .22s;
+}
+.as-overlay.on { opacity: 1; pointer-events: all; }
+.as-nudge {
+  width: 48px; height: 8px;
+  background: white; border-radius: var(--radius-m);
+  flex-shrink: 0;
+}
+.as-sheet {
+  background: white;
+  border-radius: var(--radius-l) var(--radius-l) 0 0;
+  width: 100%; flex-shrink: 0;
+  transform: translateY(100%);
+  transition: transform .28s cubic-bezier(.4,0,.2,1);
+}
+.as-overlay.on .as-sheet { transform: translateY(0); }
+.as-links { padding: 24px 24px 0; display: flex; flex-direction: column; gap: 8px; }
+.as-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 4px;
+  background: white; border: none; width: 100%; text-align: left;
+  font-family: var(--font); font-size: 16px; font-weight: 500; line-height: 24px;
+  color: var(--color-black); cursor: pointer;
+  border-radius: var(--radius-s);
+  transition: background .12s;
+}
+.as-row:active { background: var(--color-off-grey); }
+.as-row img { width: 20px; height: 20px; flex-shrink: 0; }
+.as-row.danger { color: var(--color-error); }
+
+/* ── Modal ── */
+/* ── Modale confirmation suppression — Figma 4263-24868 ── */
+.modal-bg {
+  position: absolute; inset: 0;
+  background: rgba(6,31,24,.6);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end;
+  gap: 12px;
+  opacity: 0; pointer-events: none;
+  transition: opacity .22s;
+  z-index: 200;
+}
+.modal-bg.on { opacity: 1; pointer-events: all; }
+.modal-nudge {
+  width: 48px; height: 8px;
+  background: white; border-radius: var(--radius-m);
+  flex-shrink: 0;
+}
+.modal-sheet {
+  background: white;
+  border-radius: var(--radius-l) var(--radius-l) 0 0;
+  width: 100%; flex-shrink: 0;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column;
+}
+.modal-bg.on .modal-sheet { transform: translateY(0); }
+.modal-content { padding: 24px 24px 0; display: flex; flex-direction: column; gap: 16px; text-align: center; }
+.modal-title { font-size: 22px; font-weight: 700; line-height: 28px; color: var(--color-black); }
+.modal-body  { font-size: 16px; font-weight: 500; line-height: 24px; color: var(--color-black); }
+.modal-btns  { padding: 24px; display: flex; gap: 16px; align-items: center; }
+.modal-home  { height: 34px; display: flex; align-items: center; justify-content: center; }
+.modal-home::after { content:''; width:134px; height:4px; background:var(--color-black); border-radius:100px; }
+.m-cancel {
+  flex-shrink: 0;
+  height: 48px; padding: 0 20px;
+  border-radius: var(--radius-m);
+  border: none;
+  background: var(--color-light-grey);
+  font-family: var(--font); font-size: 16px; font-weight: 700;
+  color: var(--color-black); cursor: pointer;
+  transition: opacity .12s;
+}
+.m-cancel:active { opacity: .75; }
+.m-confirm {
+  flex: 1;
+  height: 48px;
+  border-radius: var(--radius-m);
+  background: var(--color-error); border: none;
+  font-family: var(--font); font-size: 16px; font-weight: 700;
+  color: white; cursor: pointer;
+  transition: opacity .12s;
+}
+.m-confirm:active { opacity: .85; }
+
+/* ── Conversation view ── */
+.conv-head { background: white; flex-shrink: 0; }
+.conv-head-nav { height: 56px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; position: relative; }
+.conv-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); width: 48px; height: 48px; }
+.conv-center-thumb { width: 32px; height: 32px; border-radius: var(--radius-s); object-fit: cover; position: absolute; top: 0; left: 0; background: var(--color-light-grey); }
+.conv-center-av    { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; position: absolute; bottom: 0; right: 0; border: 3px solid white; background: var(--color-light-grey); }
+.head-actions { display: flex; gap: 10px; align-items: center; }
+.icon-btn { width: 32px; height: 32px; border-radius: var(--radius-xl); background: var(--color-light-grey); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .12s; }
+.icon-btn:active { background: var(--color-strong-grey); }
+/* ── Bouton favori cœur ── */
+#fav-btn { transition: background .12s; }
+#fav-btn svg { transition: transform .22s cubic-bezier(.34,1.56,.64,1); }
+#fav-btn.pop svg { transform: scale(1.4); }
+/* ── Toast ── */
+.fav-toast {
+  position: absolute; left: 16px; right: 16px;
+  background: white;
+  border: 1.5px solid var(--color-main);
+  border-radius: var(--radius-l);
+  padding: 12px 14px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 4px 20px rgba(6,31,24,.12);
+  z-index: 300;
+  bottom: 100px;
+  opacity: 0; pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity .22s, transform .22s;
+}
+.fav-toast.show { opacity: 1; pointer-events: all; transform: translateY(0); }
+.fav-toast-icon { color: var(--color-main); flex-shrink: 0; }
+.fav-toast-text { flex: 1; font-size: 14px; font-weight: 500; color: var(--color-black); }
+.fav-toast-close { background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; color: var(--color-primary-grey); flex-shrink: 0; }
+/* ── Cœur dans la liste ── */
+.ci-heart { flex-shrink: 0; display: flex; align-items: center; }
+/* ── Placeholder favoris ── */
+.fav-placeholder {
+  display: none; flex-direction: column; align-items: center;
+  padding: 40px 24px 0; gap: 16px; text-align: center;
+  width: 100%; flex-shrink: 0;
+}
+.fav-placeholder.show { display: flex; }
+.fav-placeholder-icon { width: 80px; height: 80px; flex-shrink: 0; display: block; }
+.fav-placeholder h3 { font-size: 16px; font-weight: 700; line-height: 24px; color: var(--color-black); margin: 0; }
+.fav-placeholder p  { font-size: 14px; font-weight: 500; line-height: 20px; color: var(--color-primary-grey); margin: 0; }
+.fav-placeholder-btn {
+  background: var(--color-main); color: white; border: none;
+  border-radius: var(--radius-m); height: 48px; padding: 0 20px;
+  font-family: var(--font); font-size: 16px; font-weight: 700;
+  cursor: pointer; width: 100%;
+  transition: opacity .15s;
+}
+.fav-placeholder-btn:active { opacity: .85; }
+.conv-sub { padding: 0 24px 8px; font-size: 12px; font-weight: 500; line-height: 16px; color: var(--color-primary-grey); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.conv-sub strong { font-weight: 700; }
+
+/* messages */
+.msgs { flex: 1; overflow-y: auto; padding: 4px 0 8px; display: flex; flex-direction: column; justify-content: flex-end; }
+.msgs::-webkit-scrollbar { display: none; }
+.msg-row { padding: 4px 24px 4px 8px; display: flex; align-items: flex-end; gap: 8px; }
+.msg-row.sent { flex-direction: row-reverse; padding: 4px 24px; }
+.msg-av { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0; margin-bottom: 20px; background: var(--color-light-grey); }
+.msg-wrap { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; max-width: 265px; }
+.msg-row.sent .msg-wrap { align-items: flex-end; }
+.bubble { background: var(--color-light-grey); color: var(--color-black); font-size: 15px; font-weight: 500; line-height: 22px; padding: 9px 14px; border-radius: var(--radius-xl) var(--radius-xl) var(--radius-xl) var(--radius-s); cursor: pointer; transition: transform .12s, box-shadow .12s; -webkit-user-select: none; user-select: none; }
+.msg-row.sent .bubble { background: var(--color-messaging); color: white; border-radius: var(--radius-xl) var(--radius-xl) var(--radius-s) var(--radius-xl); }
+.msg-time { font-size: 11px; font-weight: 500; color: var(--color-primary-grey); }
+
+/* input */
+.msg-input-wrap { background: white; flex-shrink: 0; }
+.msg-input-row { padding: 8px; display: flex; gap: 8px; align-items: flex-end; }
+.input-field { flex: 1; border: 1.5px solid var(--color-strong-grey); border-radius: var(--radius-xl); padding: 8px 8px 8px 10px; display: flex; align-items: center; gap: 8px; min-height: 48px; background: white; }
+.input-ph { flex: 1; font-family: var(--font); font-size: 15px; font-weight: 500; color: var(--color-primary-grey); }
+.send-btn { width: 32px; height: 32px; border-radius: var(--radius-xl); background: var(--color-main-disabled); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+
+
+</style>
+</head>
+<body>
+
+<div class="phone" id="phone">
+
+<!-- ════════════════════════════════════
+     ÉCRAN 1 · Liste des conversations
+════════════════════════════════════ -->
+<div class="screen active" id="s-list">
+  <div class="status-bar"><span class="s-time">9:41</span><div class="s-icons"><!-- signal --><svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="3" width="3" height="9" rx="1" fill="#061f18"/><rect x="4.5" y="2" width="3" height="10" rx="1" fill="#061f18"/><rect x="9" y=".5" width="3" height="11.5" rx="1" fill="#061f18"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#061f18"/></svg><svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 3C10.2 3 12.2 3.9 13.6 5.4L15 4C13.2 2.2 10.7 1 8 1 5.3 1 2.8 2.2 1 4L2.4 5.4C3.8 3.9 5.8 3 8 3Z" fill="#061f18"/><path d="M8 6C9.4 6 10.6 6.6 11.5 7.5L12.9 6.1C11.6 4.8 9.9 4 8 4 6.1 4 4.4 4.8 3.1 6.1L4.5 7.5C5.4 6.6 6.6 6 8 6Z" fill="#061f18"/><circle cx="8" cy="11" r="1.5" fill="#061f18"/></svg><svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x=".5" y=".5" width="22" height="11" rx="3.5" stroke="#061f18" stroke-opacity=".35"/><rect x="2" y="2" width="17" height="8" rx="2" fill="#061f18"/><path d="M24 4.5V7.5C24.8 7.2 25.5 6.4 25.5 6 25.5 5.6 24.8 4.8 24 4.5Z" fill="#061f18" fill-opacity=".4"/></svg></div></div>
+  <div class="nav-bar">
+    <button class="back-icon"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12.5 15L7.5 10L12.5 5" stroke="#061f18" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="pill-btn" onclick="go('select')">Modifier</button>
+  </div>
+  <div class="page-title">Messages</div>
+  <div class="tabs"><button class="tab on" id="tab-all" onclick="switchTab('all')">Tout</button><button class="tab off" id="tab-fav" onclick="switchTab('fav')">Favoris</button></div>
+  <div class="conv-list">
+
+    <!-- 0 · Sophie Debrade · Vente de mobilier -->
+    <div class="ci" data-conv="0" onmousedown="asLpStart(this,0)" ontouchstart="asLpStart(this,0)" onmouseup="asLpUp(this,0)" ontouchend="asLpUp(this,0)" onmouseleave="asLpCancel()">
+      <div class="ci-inner">
+        <div class="dav">
+          <img class="dav-thumb" src="https://images.unsplash.com/photo-1555212697-194d092e3b8f?w=96&h=96&fit=crop" alt="">
+          <img class="dav-av"    src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=96&h=96&fit=crop&crop=face" alt="">
+        </div>
+        <div class="ci-text">
+          <div class="ci-row1"><span class="ci-name">Sophie Debrade</span><span class="ci-date">10 mai</span></div>
+          <div class="ci-subject">Vend canapé d'angle en tissu — gris clair, très bon état</div>
+          <div class="ci-row3"><span class="ci-preview">Super, on confirme samedi 15h alors. À bientôt !</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1 · Cécile Rocher · Location maison · UNREAD -->
+    <div class="ci unread" data-conv="1" onmousedown="asLpStart(this,1)" ontouchstart="asLpStart(this,1)" onmouseup="asLpUp(this,1)" ontouchend="asLpUp(this,1)" onmouseleave="asLpCancel()">
+      <div class="ci-inner">
+        <div class="dav">
+          <img class="dav-thumb" src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=96&h=96&fit=crop" alt="">
+          <img class="dav-av"    src="https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?w=96&h=96&fit=crop&crop=face" alt="">
+        </div>
+        <div class="ci-text">
+          <div class="ci-row1"><span class="ci-name">Cécile Rocher</span><span class="ci-date">10 mai</span></div>
+          <div class="ci-subject">Loue maison de charme à Ivry-les-Bains — 8 couchages</div>
+          <div class="ci-row3">
+            <span class="ci-preview">J'ai ajouté les photos du jardin, dites-moi si ça vous convient !</span>
+            <span class="badge">1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 · Sophia Jackson · Vente vêtements -->
+    <div class="ci" data-conv="2" onmousedown="asLpStart(this,2)" ontouchstart="asLpStart(this,2)" onmouseup="asLpUp(this,2)" ontouchend="asLpUp(this,2)" onmouseleave="asLpCancel()">
+      <div class="ci-inner">
+        <div class="dav">
+          <img class="dav-thumb" src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=96&h=96&fit=crop" alt="">
+          <img class="dav-av"    src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=96&h=96&fit=crop&crop=face" alt="">
+        </div>
+        <div class="ci-text">
+          <div class="ci-row1"><span class="ci-name">Sophia Jackson</span><span class="ci-date">9 mai</span></div>
+          <div class="ci-subject">Vend lot de vêtements femme — taille 38, marques mixtes</div>
+          <div class="ci-row3"><span class="ci-preview">Super, à demain 10h alors, bonne soirée !</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3 · Aisha Hernandez · Vente livres -->
+    <div class="ci" data-conv="3" onmousedown="asLpStart(this,3)" ontouchstart="asLpStart(this,3)" onmouseup="asLpUp(this,3)" ontouchend="asLpUp(this,3)" onmouseleave="asLpCancel()">
+      <div class="ci-inner">
+        <div class="dav">
+          <img class="dav-thumb" src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=96&h=96&fit=crop" alt="">
+          <img class="dav-av"    src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=96&h=96&fit=crop&crop=face" alt="">
+        </div>
+        <div class="ci-text">
+          <div class="ci-row1"><span class="ci-name">Aisha Hernandez</span><span class="ci-date">8 mai</span></div>
+          <div class="ci-subject">Vend bibliothèque de romans — 60 titres, très bon état</div>
+          <div class="ci-row3"><span class="ci-preview">Parfait, je vous confirme le rendez-vous mercredi matin !</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4 · Gabriella Hill · Cours de piano -->
+    <div class="ci" data-conv="4" onmousedown="asLpStart(this,4)" ontouchstart="asLpStart(this,4)" onmouseup="asLpUp(this,4)" ontouchend="asLpUp(this,4)" onmouseleave="asLpCancel()">
+      <div class="ci-inner">
+        <div class="dav">
+          <img class="dav-thumb" src="https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=96&h=96&fit=crop" alt="">
+          <img class="dav-av"    src="https://images.unsplash.com/photo-1598550874175-4d0ef436c909?w=96&h=96&fit=crop&crop=face" alt="">
+        </div>
+        <div class="ci-text">
+          <div class="ci-row1"><span class="ci-name">Gabriella Hill</span><span class="ci-date">7 mai</span></div>
+          <div class="ci-subject">Propose cours de piano — débutants & intermédiaires, Paris 11ème</div>
+          <div class="ci-row3"><span class="ci-preview">Le premier cours d'essai est offert, n'hésitez pas !</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 · Jesse Martinez · Location van -->
+    <div class="ci" data-conv="5" onmousedown="asLpStart(this,5)" ontouchstart="asLpStart(this,5)" onmouseup="asLpUp(this,5)" ontouchend="asLpUp(this,5)" onmouseleave="asLpCancel()">
+      <div class="ci-inner">
+        <div class="dav">
+          <img class="dav-thumb" src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=96&h=96&fit=crop" alt="">
+          <img class="dav-av"    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face" alt="">
+        </div>
+        <div class="ci-text">
+          <div class="ci-row1"><span class="ci-name">Jesse Martinez</span><span class="ci-date">6 mai</span></div>
+          <div class="ci-subject">Loue van aménagé — 4 couchages, cuisine équipée, 70€/jour</div>
+          <div class="ci-row3"><span class="ci-preview">Je vous envoie le contrat de location par e-mail ce soir.</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- Placeholder favoris vide -->
+  <div class="fav-placeholder" id="fav-placeholder">
+    <img class="fav-placeholder-icon" src="https://www.figma.com/api/mcp/asset/e9109eda-5fbc-4016-97f2-af0293874962" alt="">
+    <h3>Aucun favori pour l'instant</h3>
+    <p>Balayez une conversation de gauche à droite pour l'ajouter à vos favoris.</p>
+    <button class="fav-placeholder-btn" onclick="switchTab('all')">Voir toutes les conversations</button>
+  </div>
+  <!-- Action sheet long press liste -->
+  <div class="as-overlay" id="as-overlay" onclick="asClose()">
+    <div class="as-nudge"></div>
+    <div class="as-sheet" onclick="event.stopPropagation()">
+      <div class="as-links">
+        <button class="as-row" id="as-row-unread" onclick="asToggleUnread()">
+          <img id="as-icon-unread" src="https://www.figma.com/api/mcp/asset/451a740b-1951-4ed9-8a55-dbfb8ba7444f" alt="">
+          <span id="as-label-unread">Marquer comme non lu</span>
+        </button>
+        <button class="as-row" id="as-row-fav" onclick="asToggleFavAction()">
+          <img id="as-icon-fav" src="https://www.figma.com/api/mcp/asset/162d530c-acb7-4510-9d2d-6ca2b25acaba" alt="">
+          <span id="as-label-fav">Ajouter aux favoris</span>
+        </button>
+        <button class="as-row danger" onclick="asClose()">
+          <img src="https://www.figma.com/api/mcp/asset/da0cc997-d152-45f9-87fe-c0ed938e845c" alt="">
+          Supprimer la conversation
+        </button>
+      </div>
+      <div class="home-ind"></div>
+    </div>
+  </div>
+
+  <div class="home-ind"></div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     ÉCRAN 2 · Sélection multiple
+════════════════════════════════════ -->
+<div class="screen" id="s-select">
+  <div class="status-bar"><span class="s-time">9:41</span><div class="s-icons"><svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="3" width="3" height="9" rx="1" fill="#061f18"/><rect x="4.5" y="2" width="3" height="10" rx="1" fill="#061f18"/><rect x="9" y=".5" width="3" height="11.5" rx="1" fill="#061f18"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#061f18"/></svg><svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 3C10.2 3 12.2 3.9 13.6 5.4L15 4C13.2 2.2 10.7 1 8 1 5.3 1 2.8 2.2 1 4L2.4 5.4C3.8 3.9 5.8 3 8 3Z" fill="#061f18"/><path d="M8 6C9.4 6 10.6 6.6 11.5 7.5L12.9 6.1C11.6 4.8 9.9 4 8 4 6.1 4 4.4 4.8 3.1 6.1L4.5 7.5C5.4 6.6 6.6 6 8 6Z" fill="#061f18"/><circle cx="8" cy="11" r="1.5" fill="#061f18"/></svg><svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x=".5" y=".5" width="22" height="11" rx="3.5" stroke="#061f18" stroke-opacity=".35"/><rect x="2" y="2" width="17" height="8" rx="2" fill="#061f18"/><path d="M24 4.5V7.5C24.8 7.2 25.5 6.4 25.5 6 25.5 5.6 24.8 4.8 24 4.5Z" fill="#061f18" fill-opacity=".4"/></svg></div></div>
+  <div class="nav-bar">
+    <button class="back-icon" onclick="go('list','back')">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12.5 15L7.5 10L12.5 5" stroke="#061f18" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="back-icon" onclick="go('list','back')" style="width:32px;height:32px;background:var(--color-light-grey);border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="#061f18" stroke-width="1.6" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="page-title">Messages</div>
+  <div class="sel-subtitle" id="sel-label">Aucune conversation sélectionnée</div>
+  <div class="conv-list" id="sel-list">
+
+    <div class="ci sel-ci" data-id="0" onclick="toggle(this)">
+      <div class="ci-inner" style="gap:12px">
+        <div class="sel-chk" id="c0"></div>
+        <div class="dav" style="width:60px;height:60px"><img class="dav-thumb" style="width:40px;height:40px" src="https://images.unsplash.com/photo-1555212697-194d092e3b8f?w=96&h=96&fit=crop" alt=""><img class="dav-av" style="width:40px;height:40px" src="https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=96&h=96&fit=crop&crop=face" alt=""></div>
+        <div class="ci-text"><div class="ci-row1"><span class="ci-name">Sophie Debrade</span><span class="ci-date">10 mai</span></div><div class="ci-subject">Vend canapé d'angle en tissu — gris clair, très bon état</div><div class="ci-row3"><span class="ci-preview">Super, on confirme samedi 15h alors. À bientôt !</span></div></div>
+      </div>
+    </div>
+
+    <div class="ci sel-ci unread" data-id="1" onclick="toggle(this)">
+      <div class="ci-inner" style="gap:12px">
+        <div class="sel-chk" id="c1"></div>
+        <div class="dav" style="width:60px;height:60px"><img class="dav-thumb" style="width:40px;height:40px" src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=96&h=96&fit=crop" alt=""><img class="dav-av" style="width:40px;height:40px" src="https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?w=96&h=96&fit=crop&crop=face" alt=""></div>
+        <div class="ci-text"><div class="ci-row1"><span class="ci-name">Cécile Rocher</span><span class="ci-date">10 mai</span></div><div class="ci-subject">Loue maison de charme à Ivry-les-Bains — 8 couchages</div><div class="ci-row3"><span class="ci-preview">J'ai ajouté les photos du jardin, dites-moi si ça vous convient !</span><span class="badge">1</span></div></div>
+      </div>
+    </div>
+
+    <div class="ci sel-ci" data-id="2" onclick="toggle(this)">
+      <div class="ci-inner" style="gap:12px">
+        <div class="sel-chk" id="c2"></div>
+        <div class="dav" style="width:60px;height:60px"><img class="dav-thumb" style="width:40px;height:40px" src="https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=96&h=96&fit=crop" alt=""><img class="dav-av" style="width:40px;height:40px" src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=96&h=96&fit=crop&crop=face" alt=""></div>
+        <div class="ci-text"><div class="ci-row1"><span class="ci-name">Sophia Jackson</span><span class="ci-date">9 mai</span></div><div class="ci-subject">Vend lot de vêtements femme — taille 38, marques mixtes</div><div class="ci-row3"><span class="ci-preview">Super, à demain 10h alors, bonne soirée !</span></div></div>
+      </div>
+    </div>
+
+    <div class="ci sel-ci" data-id="3" onclick="toggle(this)">
+      <div class="ci-inner" style="gap:12px">
+        <div class="sel-chk" id="c3"></div>
+        <div class="dav" style="width:60px;height:60px"><img class="dav-thumb" style="width:40px;height:40px" src="https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=96&h=96&fit=crop" alt=""><img class="dav-av" style="width:40px;height:40px" src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=96&h=96&fit=crop&crop=face" alt=""></div>
+        <div class="ci-text"><div class="ci-row1"><span class="ci-name">Aisha Hernandez</span><span class="ci-date">8 mai</span></div><div class="ci-subject">Vend bibliothèque de romans — 60 titres, très bon état</div><div class="ci-row3"><span class="ci-preview">Parfait, je vous confirme le rendez-vous mercredi matin !</span></div></div>
+      </div>
+    </div>
+
+    <div class="ci sel-ci" data-id="4" onclick="toggle(this)">
+      <div class="ci-inner" style="gap:12px">
+        <div class="sel-chk" id="c4"></div>
+        <div class="dav" style="width:60px;height:60px"><img class="dav-thumb" style="width:40px;height:40px" src="https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=96&h=96&fit=crop" alt=""><img class="dav-av" style="width:40px;height:40px" src="https://images.unsplash.com/photo-1598550874175-4d0ef436c909?w=96&h=96&fit=crop&crop=face" alt=""></div>
+        <div class="ci-text"><div class="ci-row1"><span class="ci-name">Gabriella Hill</span><span class="ci-date">7 mai</span></div><div class="ci-subject">Propose cours de piano — débutants & intermédiaires, Paris 11ème</div><div class="ci-row3"><span class="ci-preview">Le premier cours d'essai est offert, n'hésitez pas !</span></div></div>
+      </div>
+    </div>
+
+    <div class="ci sel-ci" data-id="5" onclick="toggle(this)">
+      <div class="ci-inner" style="gap:12px">
+        <div class="sel-chk" id="c5"></div>
+        <div class="dav" style="width:60px;height:60px"><img class="dav-thumb" style="width:40px;height:40px" src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=96&h=96&fit=crop" alt=""><img class="dav-av" style="width:40px;height:40px" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face" alt=""></div>
+        <div class="ci-text"><div class="ci-row1"><span class="ci-name">Jesse Martinez</span><span class="ci-date">6 mai</span></div><div class="ci-subject">Loue van aménagé — 4 couchages, cuisine équipée, 70€/jour</div><div class="ci-row3"><span class="ci-preview">Je vous envoie le contrat de location par e-mail ce soir.</span></div></div>
+      </div>
+    </div>
+
+  </div>
+  <div class="sel-actions">
+    <button class="cancel-btn" onclick="go('list','back')">Annuler</button>
+    <button class="del-btn" id="del-btn" onclick="showModal()">Supprimer</button>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     ÉCRAN 3 · Vue conversation
+════════════════════════════════════ -->
+<div class="screen" id="s-conv">
+  <div class="conv-head">
+    <div class="status-bar"><span class="s-time">9:41</span><div class="s-icons"><svg width="17" height="12" viewBox="0 0 17 12" fill="none"><rect x="0" y="3" width="3" height="9" rx="1" fill="#061f18"/><rect x="4.5" y="2" width="3" height="10" rx="1" fill="#061f18"/><rect x="9" y=".5" width="3" height="11.5" rx="1" fill="#061f18"/><rect x="13.5" y="0" width="3" height="12" rx="1" fill="#061f18"/></svg><svg width="16" height="12" viewBox="0 0 16 12" fill="none"><path d="M8 3C10.2 3 12.2 3.9 13.6 5.4L15 4C13.2 2.2 10.7 1 8 1 5.3 1 2.8 2.2 1 4L2.4 5.4C3.8 3.9 5.8 3 8 3Z" fill="#061f18"/><path d="M8 6C9.4 6 10.6 6.6 11.5 7.5L12.9 6.1C11.6 4.8 9.9 4 8 4 6.1 4 4.4 4.8 3.1 6.1L4.5 7.5C5.4 6.6 6.6 6 8 6Z" fill="#061f18"/><circle cx="8" cy="11" r="1.5" fill="#061f18"/></svg><svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x=".5" y=".5" width="22" height="11" rx="3.5" stroke="#061f18" stroke-opacity=".35"/><rect x="2" y="2" width="17" height="8" rx="2" fill="#061f18"/><path d="M24 4.5V7.5C24.8 7.2 25.5 6.4 25.5 6 25.5 5.6 24.8 4.8 24 4.5Z" fill="#061f18" fill-opacity=".4"/></svg></div></div>
+    <div class="conv-head-nav">
+      <button class="back-icon" onclick="go('list','back')">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M12.5 15L7.5 10L12.5 5" stroke="#061f18" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="conv-center">
+        <img class="conv-center-thumb" id="ch-thumb" src="" alt="">
+        <img class="conv-center-av"    id="ch-av"    src="" alt="">
+      </div>
+      <div class="head-actions">
+        <button class="icon-btn" id="fav-btn" onclick="toggleFav()" title="Ajouter aux favoris"><svg id="fav-icon" width="18" height="18" viewBox="0 0 18 18" fill="none"><path id="fav-path" d="M3 7.5C3 4.5 5.2 2.5 7.5 2.5C8.7 2.5 9.8 3.1 10.5 4C11.2 3.1 12.3 2.5 13.5 2.5C15.8 2.5 18 4.5 18 7.5C18 12 13 15.2 10.5 16.5C8 15.2 3 12 3 7.5Z" stroke="#061f18" stroke-width="1.5" stroke-linejoin="round" fill="none"/></svg></button>
+        <button class="icon-btn"><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="4" cy="9" r="1.5" fill="#061f18"/><circle cx="9" cy="9" r="1.5" fill="#061f18"/><circle cx="14" cy="9" r="1.5" fill="#061f18"/></svg></button>
+      </div>
+    </div>
+    <div class="conv-sub" id="ch-sub"></div>
+  </div>
+
+  <div class="msgs" id="msgs-area"></div>
+
+  <div class="msg-input-wrap">
+    <div class="msg-input-row">
+      <div class="input-field">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style="flex-shrink:0;opacity:.45"><path d="M15 8L8.5 14.5C7 16 4.5 16 3 14.5S1.5 11 3 9.5L9.5 3C10.5 2 12 2 13 3S14 5.5 13 6.5L7 12.5C6.5 13 5.5 13 5 12.5S4.5 11.5 5 11L10 6" stroke="#061f18" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="input-ph" id="input-ph">Envoyer un message</span>
+        <button class="send-btn"><svg width="15" height="15" viewBox="0 0 15 15" fill="none"><path d="M13 2L2 7L6.5 9M13 2L8.5 13L6.5 9M13 2L6.5 9" stroke="white" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </div>
+    <div class="home-ind"></div>
+  </div>
+
+  <!-- Toast favori -->
+  <div class="fav-toast" id="fav-toast">
+    <svg class="fav-toast-icon" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="9" stroke="#497e64" stroke-width="1.5"/><path d="M6 10L8.5 12.5L14 7.5" stroke="#497e64" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="fav-toast-text" id="fav-toast-text">Conversation ajoutée aux favoris !</span>
+    <button class="fav-toast-close" onclick="closeToast()"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 2L14 14M14 2L2 14" stroke="#727373" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+  </div>
+
+</div>
+
+
+<!-- Modal suppression -->
+<div class="modal-bg" id="modal" onclick="if(event.target===this)hideModal()">
+  <div class="modal-nudge"></div>
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-title">Souhaitez-vous supprimer ces conversations&nbsp;?</div>
+      <div class="modal-body">Celles-ci seront supprimées définitivement.</div>
+    </div>
+    <div class="modal-btns">
+      <button class="m-cancel" onclick="hideModal()">Annuler</button>
+      <button class="m-confirm" onclick="confirmDel()">Supprimer</button>
+    </div>
+    <div class="modal-home"></div>
+  </div>
+</div>
+
+</div><!-- .phone -->
+
+<script>
+/* ═══════════════════════════════════════════
+   DATA — 6 conversations personnalisées
+═══════════════════════════════════════════ */
+const CONVS = [
+  {
+    id: 0,
+    name: 'Sophie Debrade',
+    shortName: 'Sophie D.',
+    thumb: 'https://images.unsplash.com/photo-1555212697-194d092e3b8f?w=96&h=96&fit=crop',
+    av:    'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=96&h=96&fit=crop&crop=face',
+    ad: 'Vend canapé d\'angle en tissu gris clair — très bon état, non-fumeur',
+    inputPh: 'Envoyer un message à Sophie',
+    messages: [
+      { sent: false, text: 'Bonjour ! Je vends mon canapé d\'angle gris clair. Il est en parfait état, jamais eu d\'animaux. Le prix est de 350 €.', time: '10:04' },
+      { sent: true,  text: 'Bonjour Sophie, il mesure combien exactement ? Et vous êtes disponible pour une visite ce week-end ?', time: '10:12' },
+      { sent: false, text: 'Il fait 260 cm × 160 cm. Oui, samedi après-midi me convient très bien !', time: '10:15' },
+      { sent: true,  text: 'Parfait. Est-ce qu\'il est démontable pour le transport ? On viendrait avec un utilitaire.', time: '10:18' },
+      { sent: false, text: 'Oui il se démonte facilement, j\'ai toujours les vis d\'origine. Oui il est toujours disponible, venez le voir quand vous voulez !', time: '10:21' },
+      { sent: true,  text: 'Super, on confirme samedi 15h alors. À bientôt !', time: '10:23' },
+    ]
+  },
+  {
+    id: 1,
+    name: 'Cécile Rocher',
+    shortName: 'Cécile R.',
+    thumb: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=96&h=96&fit=crop',
+    av:    'https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?w=96&h=96&fit=crop&crop=face',
+    ad: 'Loue maison de charme à Ivry-les-Bains — piscine, 8 couchages, 500m de la plage',
+    inputPh: 'Envoyer un message à Cécile',
+    messages: [
+      { sent: true,  text: 'Bonjour Cécile ! Votre maison nous intéresse pour la semaine du 14 juillet. Elle est encore disponible ?', time: '9:30' },
+      { sent: false, text: 'Bonjour ! Oui, elle est disponible cette semaine-là. C\'est une très belle période, vous serez à 5 min de la plage.', time: '9:45' },
+      { sent: true,  text: 'Parfait ! On serait 6 adultes et 2 enfants. Y a-t-il un espace sécurisé pour les enfants autour de la piscine ?', time: '9:52' },
+      { sent: false, text: 'Absolument, la piscine est entourée d\'une clôture avec portillon sécurisé. Il y a aussi un grand jardin clôturé.', time: '10:01' },
+      { sent: true,  text: 'Excellent ! Pourriez-vous nous envoyer quelques photos du jardin et des chambres ?', time: '10:08' },
+      { sent: false, text: 'J\'ai ajouté les photos du jardin, dites-moi si ça vous convient !', time: '10:14', unread: true },
+    ]
+  },
+  {
+    id: 2,
+    name: 'Sophia Jackson',
+    shortName: 'Sophia J.',
+    thumb: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?w=96&h=96&fit=crop',
+    av:    'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=96&h=96&fit=crop&crop=face',
+    ad: 'Vend lot de vêtements femme — taille 38, marques mixtes, bon état général',
+    inputPh: 'Envoyer un message à Sophia',
+    messages: [
+      { sent: true,  text: 'Bonjour, je suis intéressée par votre lot de vêtements. Il y a des pièces d\'hiver ou plutôt été ?', time: '14:20' },
+      { sent: false, text: 'Bonjour ! Il y a un mélange des deux — des pulls, des robes d\'été, des jeans et quelques vestes légères.', time: '14:35' },
+      { sent: true,  text: 'Super ! Seriez-vous d\'accord pour vendre certaines pièces séparément, ou uniquement le lot complet ?', time: '14:40' },
+      { sent: false, text: 'Je préfère vendre le lot, mais pour des pièces à plus de 20€ je peux être flexible. Il y a notamment une veste Sandro quasi neuve.', time: '14:48' },
+      { sent: true,  text: 'Ça m\'intéresse beaucoup ! Je peux passer demain matin pour voir ? Je suis disponible à partir de 10h.', time: '14:55' },
+      { sent: false, text: 'Super, à demain 10h alors, bonne soirée !', time: '15:01' },
+    ]
+  },
+  {
+    id: 3,
+    name: 'Aisha Hernandez',
+    shortName: 'Aisha H.',
+    thumb: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=96&h=96&fit=crop',
+    av:    'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=96&h=96&fit=crop&crop=face',
+    ad: 'Vend bibliothèque de romans — 60 titres, très bon état, 80€ le tout',
+    inputPh: 'Envoyer un message à Aisha',
+    messages: [
+      { sent: true,  text: 'Bonjour Aisha ! Je suis passionnée de lecture. Quels genres de romans se trouvent dans votre lot ?', time: '11:00' },
+      { sent: false, text: 'Bonjour ! Il y a beaucoup de littérature française contemporaine, quelques polars, et une belle sélection de classiques du XXème.', time: '11:12' },
+      { sent: true,  text: 'C\'est exactement ce que je cherchais. Il y aurait des titres de Modiano ou Duras par exemple ?', time: '11:18' },
+      { sent: false, text: 'Oui ! J\'ai plusieurs Modiano, deux Duras et même du Perec. Je peux vous faire une liste si vous voulez.', time: '11:25' },
+      { sent: true,  text: 'Ce serait super, merci ! Et pour récupérer les livres, vous êtes dans quel arrondissement ?', time: '11:30' },
+      { sent: false, text: 'Parfait, je vous confirme le rendez-vous mercredi matin ! Je suis dans le 6ème, rue Madame.', time: '11:40' },
+    ]
+  },
+  {
+    id: 4,
+    name: 'Gabriella Hill',
+    shortName: 'Gabriella H.',
+    thumb: 'https://images.unsplash.com/photo-1520523839897-bd0b52f945a0?w=96&h=96&fit=crop',
+    av:    'https://images.unsplash.com/photo-1598550874175-4d0ef436c909?w=96&h=96&fit=crop&crop=face',
+    ad: 'Propose cours de piano — débutants & intermédiaires, domicile Paris 11ème',
+    inputPh: 'Envoyer un message à Gabriella',
+    messages: [
+      { sent: true,  text: 'Bonjour Gabriella, j\'aimerais apprendre le piano pour adulte débutant. Vous travaillez avec quelle méthode ?', time: '16:05' },
+      { sent: false, text: 'Bonjour ! J\'utilise une approche progressive adaptée aux adultes — on commence par des morceaux que vous aimez, pas du solfège pur !', time: '16:18' },
+      { sent: true,  text: 'C\'est exactement ce que je voulais entendre ! Les cours durent combien de temps et quel est le tarif ?', time: '16:22' },
+      { sent: false, text: 'Les séances durent 45 min, à 45€. Je propose aussi un forfait 4 séances à 160€. Et le premier cours est toujours offert.', time: '16:30' },
+      { sent: true,  text: 'Très bien ! Je n\'ai pas de piano chez moi pour l\'instant, c\'est un problème ?', time: '16:35' },
+      { sent: false, text: 'Le premier cours d\'essai est offert, n\'hésitez pas ! Et pour le piano, un clavier numérique suffit largement pour débuter.', time: '16:42' },
+    ]
+  },
+  {
+    id: 5,
+    name: 'Jesse Martinez',
+    shortName: 'Jesse M.',
+    thumb: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?w=96&h=96&fit=crop',
+    av:    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face',
+    ad: 'Loue van aménagé — 4 couchages, cuisine équipée, 70€/jour avec kilométrage illimité',
+    inputPh: 'Envoyer un message à Jesse',
+    messages: [
+      { sent: true,  text: 'Bonjour Jesse ! Votre van est disponible du 20 au 27 juin ? On prévoit un road trip en Bretagne.', time: '18:10' },
+      { sent: false, text: 'Bonjour ! Oui, il est disponible sur ces dates. C\'est un van Volkswagen Crafter aménagé avec tout le confort.', time: '18:22' },
+      { sent: true,  text: 'Super ! Il y a une douche à bord ? Et quelle est la consommation approximative ?', time: '18:28' },
+      { sent: false, text: 'Il y a une douche extérieure pliable et une réserve d\'eau de 50L. La conso tourne autour de 9L/100 km.', time: '18:35' },
+      { sent: true,  text: 'Parfait, ça nous convient. Quelles sont les démarches pour réserver ? Il faut une caution ?', time: '18:40' },
+      { sent: false, text: 'Je vous envoie le contrat de location par e-mail ce soir. La caution est de 500€, remboursée à la restitution.', time: '18:52' },
+    ]
+  },
+];
+
+/* ═══════════════════════════════════════════
+   STATE & NAVIGATION
+═══════════════════════════════════════════ */
+let cur = 'list';
+let sel = new Set();
+let currentConv = null;
+
+const scr = { list:'s-list', select:'s-select', conv:'s-conv' };
+const hints = {
+  list:   'Tapez "Modifier" ou une conversation pour continuer',
+  select: 'Sélectionnez des conversations · puis Supprimer',
+  conv:   'Appui long sur un message reçu pour le menu →',
+};
+const dots = { list:0, select:1, conv:2 };
+
+function go(id, dir='fwd') {
+  const prev = document.getElementById(scr[cur]);
+  const next = document.getElementById(scr[id]);
+  next.style.transition = 'none';
+  next.style.opacity = '0';
+  next.style.transform = dir === 'fwd' ? 'translateX(32px)' : 'translateX(-32px)';
+  next.style.pointerEvents = 'none';
+  requestAnimationFrame(() => {
+    next.style.transition = '';
+    requestAnimationFrame(() => {
+      prev.style.opacity = '0';
+      prev.style.transform = dir === 'fwd' ? 'translateX(-32px)' : 'translateX(32px)';
+      prev.style.pointerEvents = 'none';
+      prev.classList.remove('active');
+      next.style.opacity = '1';
+      next.style.transform = 'translateX(0)';
+      next.style.pointerEvents = 'all';
+      next.classList.add('active');
+    });
+  });
+  setTimeout(() => { prev.style.transform = ''; prev.style.opacity = ''; }, 320);
+  cur = id;
+
+}
+
+/* ═══════════════════════════════════════════
+   OPEN CONVERSATION
+═══════════════════════════════════════════ */
+function openConv(idx) {
+  currentConv = CONVS[idx];
+  const c = currentConv;
+
+  // Update header
+  document.getElementById('ch-thumb').src = c.thumb;
+  document.getElementById('ch-av').src    = c.av;
+  document.getElementById('ch-sub').innerHTML = `<strong>${c.shortName}</strong> · ${c.ad}`;
+  document.getElementById('input-ph').textContent = c.inputPh;
+
+  // Render messages
+  const area = document.getElementById('msgs-area');
+  area.innerHTML = '';
+  c.messages.forEach((m, i) => {
+    const row = document.createElement('div');
+    row.className = 'msg-row' + (m.sent ? ' sent' : '');
+
+    if (!m.sent) {
+      const av = document.createElement('img');
+      av.className = 'msg-av';
+      av.src = c.av;
+      row.appendChild(av);
+    }
+
+    const wrap = document.createElement('div');
+    wrap.className = 'msg-wrap';
+
+    const bub = document.createElement('div');
+    bub.className = 'bubble';
+    bub.textContent = m.text;
+
+
+
+    const time = document.createElement('span');
+    time.className = 'msg-time';
+    time.textContent = m.sent ? (i === c.messages.length-1 ? m.time + ' · distribué' : m.time) : m.time;
+
+    wrap.appendChild(bub);
+    wrap.appendChild(time);
+    row.appendChild(wrap);
+    area.appendChild(row);
+  });
+
+  // Marquer comme lu si la conversation était non lue
+  if (unreadSet.has(idx)) {
+    unreadSet.delete(idx);
+    const el = document.querySelector(`.ci[data-conv="${idx}"]`);
+    if (el) {
+      el.classList.remove('unread');
+      const badge = el.querySelector('.badge');
+      if (badge) badge.remove();
+    }
+  }
+
+  go('conv');
+}
+
+/* ═══════════════════════════════════════════
+   SELECTION
+═══════════════════════════════════════════ */
+function toggle(el) {
+  const id = el.dataset.id;
+  const chk = document.getElementById('c'+id);
+  if (sel.has(id)) { sel.delete(id); chk.classList.remove('on'); }
+  else             { sel.add(id);    chk.classList.add('on'); }
+  const n = sel.size;
+  document.getElementById('sel-label').textContent =
+    n === 0 ? 'Aucune conversation sélectionnée' :
+    n === 1 ? '1 conversation sélectionnée' : `${n} conversations sélectionnées`;
+  document.getElementById('del-btn').classList.toggle('on', n > 0);
+}
+
+function showModal() { if (sel.size) document.getElementById('modal').classList.add('on'); }
+function hideModal() { document.getElementById('modal').classList.remove('on'); }
+function confirmDel() {
+  hideModal();
+  sel.forEach(id => {
+    const el = document.querySelector(`.sel-ci[data-id="${id}"]`);
+    if (el) {
+      el.style.transition = 'opacity .28s, max-height .32s, padding .32s, margin .32s';
+      el.style.opacity = '0'; el.style.maxHeight = '0';
+      el.style.paddingTop = '0'; el.style.paddingBottom = '0';
+    }
+  });
+  sel.clear();
+  document.getElementById('sel-label').textContent = 'Aucune conversation sélectionnée';
+  document.getElementById('del-btn').classList.remove('on');
+  setTimeout(() => go('list','back'), 650);
+}
+
+/* ═══════════════════════════════════════════
+   ACTION SHEET — LONG PRESS LISTE
+═══════════════════════════════════════════ */
+let asTimer   = null;
+let asIdx     = null;
+let asFired   = false;
+
+const AS_ICON_CHATDOT   = 'https://www.figma.com/api/mcp/asset/451a740b-1951-4ed9-8a55-dbfb8ba7444f';
+const AS_ICON_CHATCHECK = 'https://www.figma.com/api/mcp/asset/f8a7a06d-3079-4054-b242-9db5ccca8850';
+const AS_ICON_HEART     = 'https://www.figma.com/api/mcp/asset/162d530c-acb7-4510-9d2d-6ca2b25acaba';
+const AS_ICON_HEARTFILL = 'https://www.figma.com/api/mcp/asset/03f26e08-dbd6-4c7f-a192-3b60452d8e64';
+
+// Ensemble des conversations en statut non lu (indexes)
+const unreadSet = new Set();
+// Cécile (idx 1) est non lue par défaut
+unreadSet.add(1);
+
+function asUpdateSheet(idx) {
+  // Non lu / Lu
+  const isUnread = unreadSet.has(idx);
+  document.getElementById('as-icon-unread').src   = isUnread ? AS_ICON_CHATCHECK : AS_ICON_CHATDOT;
+  document.getElementById('as-label-unread').textContent = isUnread ? 'Marquer comme lu' : 'Marquer comme non lu';
+  // Favoris
+  const isFav = favorites.has(idx);
+  document.getElementById('as-icon-fav').src   = isFav ? AS_ICON_HEARTFILL : AS_ICON_HEART;
+  document.getElementById('as-label-fav').textContent = isFav ? 'Retirer des favoris' : 'Ajouter aux favoris';
+}
+
+function asLpStart(el, idx) {
+  asLpCancel();
+  asIdx   = idx;
+  asFired = false;
+  asTimer = setTimeout(() => {
+    asFired = true;
+    asUpdateSheet(idx);
+    document.getElementById('as-overlay').classList.add('on');
+  }, 500);
+}
+
+function asLpUp(el, idx) {
+  if (!asFired) {
+    // Tap court → ouvrir la conversation
+    clearTimeout(asTimer);
+    asTimer = null;
+    openConv(idx);
+  }
+  // Si long press déclenché, la sheet reste ouverte
+}
+
+function asLpCancel() {
+  if (asTimer) { clearTimeout(asTimer); asTimer = null; }
+  asFired = false;
+}
+
+function asClose() {
+  document.getElementById('as-overlay').classList.remove('on');
+}
+
+function asToggleUnread() {
+  if (asIdx === null) return;
+  const el = document.querySelector(`.ci[data-conv="${asIdx}"]`);
+  if (!el) { asClose(); return; }
+
+  const isUnread = unreadSet.has(asIdx);
+
+  if (isUnread) {
+    // → Marquer comme lu
+    unreadSet.delete(asIdx);
+    el.classList.remove('unread');
+    // Supprimer badge
+    const badge = el.querySelector('.badge');
+    if (badge) badge.remove();
+  } else {
+    // → Marquer comme non lu
+    unreadSet.add(asIdx);
+    el.classList.add('unread');
+    // Ajouter badge si absent
+    const row3 = el.querySelector('.ci-row3');
+    if (row3 && !row3.querySelector('.badge')) {
+      const badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.textContent = '1';
+      row3.appendChild(badge);
+    }
+  }
+  asClose();
+}
+
+function asToggleFavAction() {
+  if (asIdx === null) return;
+  const isFav = favorites.has(asIdx);
+  if (isFav) {
+    favorites.delete(asIdx);
+    showToast('Conversation retirée des favoris.');
+  } else {
+    favorites.add(asIdx);
+    showToast('Conversation ajoutée aux favoris !');
+  }
+  updateListHearts();
+  if (currentTab === 'fav') filterFavorites();
+  asClose();
+}
+
+// Tap on modal backdrop to close
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) hideModal();
+});
+document.querySelector('.modal-sheet').addEventListener('click', e => e.stopPropagation());
+
+/* ═══════════════════════════════════════════
+   FAVORIS
+═══════════════════════════════════════════ */
+const favorites = new Set(); // stocke les idx de convs favorites
+let toastTimer = null;
+let currentTab = 'all';
+
+function toggleFav() {
+  if (!currentConv) return;
+  const idx = currentConv.id;
+  const isFav = favorites.has(idx);
+
+  if (isFav) {
+    favorites.delete(idx);
+  } else {
+    favorites.add(idx);
+  }
+
+  // Mettre à jour l'icône cœur dans le header
+  updateFavIcon();
+
+  // Animation pop du cœur
+  const btn = document.getElementById('fav-btn');
+  btn.classList.remove('pop');
+  void btn.offsetWidth; // reflow pour relancer l'animation
+  btn.classList.add('pop');
+  setTimeout(() => btn.classList.remove('pop'), 300);
+
+  // Toast
+  showToast(favorites.has(idx)
+    ? 'Conversation ajoutée aux favoris !'
+    : 'Conversation retirée des favoris.');
+
+  // Mettre à jour le cœur dans la liste
+  updateListHearts();
+}
+
+function updateFavIcon() {
+  if (!currentConv) return;
+  const isFav = favorites.has(currentConv.id);
+  const path = document.getElementById('fav-path');
+  if (isFav) {
+    path.setAttribute('fill', '#061f18');
+    path.setAttribute('stroke', '#061f18');
+  } else {
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', '#061f18');
+  }
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('fav-toast');
+  document.getElementById('fav-toast-text').textContent = msg;
+  toast.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+function closeToast() {
+  document.getElementById('fav-toast').classList.remove('show');
+  if (toastTimer) clearTimeout(toastTimer);
+}
+
+function updateListHearts() {
+  // Supprimer tous les cœurs existants
+  document.querySelectorAll('.ci-heart').forEach(el => el.remove());
+  // Ajouter un cœur pour chaque conversation favorite
+  document.querySelectorAll('.ci[data-conv]').forEach(el => {
+    const idx = parseInt(el.dataset.conv);
+    if (favorites.has(idx)) {
+      const dateEl = el.querySelector('.ci-date');
+      if (dateEl) {
+        const heart = document.createElement('span');
+        heart.className = 'ci-heart';
+        heart.innerHTML = '<svg width="13" height="12" viewBox="0 0 13 12" fill="none"><path d="M1.5 5C1.5 2.8 3.1 1.5 4.7 1.5C5.6 1.5 6.3 1.9 6.8 2.6C7.3 1.9 8 1.5 8.9 1.5C10.5 1.5 12.1 2.8 12.1 5C12.1 8 8.8 10.2 6.8 11.2C4.8 10.2 1.5 8 1.5 5Z" fill="#061f18"/></svg>';
+        dateEl.after(heart);
+      }
+    }
+  });
+
+  // Mettre à jour la vue favoris si active
+  if (currentTab === 'fav') filterFavorites();
+}
+
+/* ── Onglets Tout / Favoris ── */
+function switchTab(tab) {
+  currentTab = tab;
+  const tabAll = document.getElementById('tab-all');
+  const tabFav = document.getElementById('tab-fav');
+
+  if (tab === 'all') {
+    tabAll.className = 'tab on';
+    tabFav.className = 'tab off';
+    showAllConversations();
+  } else {
+    tabAll.className = 'tab off';
+    tabFav.className = 'tab on';
+    filterFavorites();
+  }
+}
+
+function showAllConversations() {
+  document.querySelectorAll('.ci[data-conv]').forEach(el => el.style.display = '');
+  document.getElementById('fav-placeholder').classList.remove('show');
+}
+
+function filterFavorites() {
+  let count = 0;
+  document.querySelectorAll('.ci[data-conv]').forEach(el => {
+    const idx = parseInt(el.dataset.conv);
+    if (favorites.has(idx)) {
+      el.style.display = '';
+      count++;
+    } else {
+      el.style.display = 'none';
+    }
+  });
+  const placeholder = document.getElementById('fav-placeholder');
+  if (count === 0) {
+    placeholder.classList.add('show');
+  } else {
+    placeholder.classList.remove('show');
+  }
+}
+
+/* ── Mettre à jour le cœur quand on ouvre une conv ── */
+const _origOpenConv = openConv;
+openConv = function(idx) {
+  _origOpenConv(idx);
+  // Mettre à jour l'icône après que openConv a changé currentConv
+  requestAnimationFrame(updateFavIcon);
+};
+</script>
+</body>
+</html>
